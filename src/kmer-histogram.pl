@@ -3,47 +3,71 @@ use strict;
 
 ## INPUT
 
+# print help if no arguments or just "-h" given
+if (scalar(@ARGV) == 0 || $ARGV[0] eq "-h") {
+	print "
+	USAGE:
+		perl kmer-histogram <INPUT_FILE> <OUTPUT_FILE_PREFIX> <K-MER_SIZE>
+
+	ARGUMENTS:
+		<INPUT_FILE> => input fasta or fastq file containing read sequences
+		<OUTPUT_FILE_PREFIX> => the path to the output file without file format ending, format will be .csv
+		<K-MER_SIZE> => size of the created k-mers
+	","\n";
+	exit;
+}
+
 # Get the input file (fasta or fastq) from first command line argument
 chomp(my $inputFile = $ARGV[0]);
 
-# Get the kmer size from second command line argument
-chomp(my $kmerSize = $ARGV[1]);
+# Get the output file prefix from second command line argument
+chomp(my $outputFilePrefix = $ARGV[1]);
 
-# If the input file doesn not exist, ask if a default file should be used
-my $defaultFile = "../data/cladonia_forward.fq";
+# Get the kmer size from third command line argument
+chomp(my $kmerSize = $ARGV[2]);
 
+## BODY
+
+# exit in case input does not exist
 unless (-e $inputFile) {
 	print "Sorry, the file \"$inputFile\" does not exist.\n";
-	# ask for using default file
-	my $useDefaultFile = "";
-	while($useDefaultFile ne "y" && $useDefaultFile ne "n") {
-		print "Should I use the default file? [y/n]: ";
-		chomp($useDefaultFile = <STDIN>);
-	}
-	if ($useDefaultFile eq "y") {
-		$inputFile = $defaultFile;
-	} elsif ($useDefaultFile eq "n") {
-		print "Program exit.\n";
-		exit;
-	}
+	print "Program exit.\n";
+	exit;
 }
 
+# create kmer abundance hash for input file
+my %kmerHash = createKmerCoverageHash(getSequencesFromFile($inputFile));
+
+# create output file containing kmer coverage
+my @hashKeys = keys(%kmerHash);
+print "Ready to create k-mer coverage file. Press any key to continue: ";
+<STDIN>;
+open(OUT, ">$outputFilePrefix.csv") or die "Unable to open file \"$outputFilePrefix.csv\"";
+print OUT "'K-mer','Coverage'\n";
+# print all kmers in hash table into output file
+for (my $i=0; $i < @hashKeys; $i++) {
+	print OUT "'".$hashKeys[$i]."',".$kmerHash{$hashKeys[$i]}."\n";
+}
+close(OUT);
+
+
+## SUBROUTINES
 
 # subroutine to get sequences out of input file
 sub getSequencesFromFile {
 
 	# first argument is input file
-	my $inputFile = $_[0];
-	
+	my ($inputFile) = @_;
+
 	# Check if the input file is fasta or fastq, otherwise abort
 	# therefor, look at the substring beginning after the last "." in the file name
 	my $fileFormat = substr($inputFile, rindex($inputFile, '.')+1, length($inputFile));
 
 	# array for saving sequences
-	my @sequences;
+	my @sequences = ();
 
 	if ($fileFormat eq "fq" || $fileFormat eq "fastq" || $fileFormat eq "fa" || $fileFormat eq "fasta") {
-		
+
 		print "Collecting read sequences from \"$inputFile\"...\n";
 
 		# get file contents
@@ -68,60 +92,51 @@ sub getSequencesFromFile {
 			exit;
 		}
 	}
-	
+
 	# return the array with all sequences
 	return @sequences;
 }
 
-# Hash table for kmer coverage
-my %kmerHash;
 
-# get all sequences from input file
-my @sequences = getSequencesFromFile($inputFile);
+# sub routine to create kmer coverage from a list of read sequences
+sub createKmerCoverageHash {
 
-print "Collecting k-mers from read sequences...\n";
-# get all kmers ocurring in the sequences and fill in the kmer coverage hash table
-foreach(@sequences) {
-    
-	# current read sequence in the iteration
-	my $sequence = $_;
-	
-	# naive algorithm to get all kmers out of a sequence
-	# iterates through the sequence by moving at each step one position to the right until last kmer reached
-	
-	# find k-mers of lenght $kmerSize in the read sequence
-	for (my $i = 0; $i <= length($sequence)-$kmerSize; $i++) {
-		my $currentKmer = substr($sequence, $i, $kmerSize);
-		
-		## IMPORTANT: ignore multiple ocurrences of a kmer within the same read sequence, counts just as one
-		# check if the current kmer equals another kmer with a lower position  in the current read sequence
-		# that means, the current kmer has already been registered
-		# index returns the position of the first ocurrence in the read for the sequence of the current kmer
-		# $i is the position of the current kmer in the read (current iteration index)
-		if (index($sequence, $currentKmer) < $i) {
-			# don't add the current kmer to the hash again
-			# continue to next iteration step
-			next;
-		} else {
-			# add kmer to hash table
-			$kmerHash{"$currentKmer"} += 1;
-		} 
+	# first argument is an array with sequences
+	my (@sequences) = @_;
+
+	# hash table to write kamers and corresponding coverage to
+	my %kmerHash = ();
+
+	print "Collecting k-mers from read sequences...\n";
+	# get all kmers ocurring in the sequences and fill in the kmer coverage hash table
+	foreach(@sequences) {
+
+		# current read sequence in the iteration
+		my $sequence = $_;
+
+		# naive algorithm to get all kmers out of a sequence
+		# iterates through the sequence by moving at each step one position to the right until last kmer reached
+
+		# find k-mers of lenght $kmerSize in the read sequence
+		for (my $i = 0; $i <= length($sequence)-$kmerSize; $i++) {
+			my $currentKmer = substr($sequence, $i, $kmerSize);
+
+			## IMPORTANT: ignore multiple ocurrences of a kmer within the same read sequence, counts just as one
+			# check if the current kmer equals another kmer with a lower position  in the current read sequence
+			# that means, the current kmer has already been registered
+			# index returns the position of the first ocurrence in the read for the sequence of the current kmer
+			# $i is the position of the current kmer in the read (current iteration index)
+			if (index($sequence, $currentKmer) < $i) {
+				# don't add the current kmer to the hash again
+				# continue to next iteration step
+				next;
+			} else {
+				# add kmer to hash table
+				$kmerHash{"$currentKmer"} += 1;
+			}
+		}
 	}
+
+	# return the hash with kmers and coverage
+	return %kmerHash;
 }
-
-
-# Create output csv file containing the kmer ocurrences from hash table
-my @hashKeys = keys(%kmerHash);
-print "Ready to print k-mers hash table. Press any key to continue: ";
-<STDIN>;
-open(OUT, ">kmers.csv") or die "Unable to open file \"kmers.csv\"";
-print OUT "'K-mer','Coverage'\n";
-# print all kmers in hash table
-for (my $i=0; $i < @hashKeys; $i++) { 
-	print OUT "'".$hashKeys[$i]."',".$kmerHash{$hashKeys[$i]}."\n";
-}
-close(OUT);
-
-
-
-
