@@ -1,2 +1,2 @@
-# Perl K-mer Histogram
-Perl script to create k-mer histograms out of read sequences.
+# kViz
+kViz is a simple bioinformatics tool for visualizing the dristibution of the k-mer coverage within a given set of sequencing reads.
