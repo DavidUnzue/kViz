@@ -1,5 +1,9 @@
 #!/usr/bin/perl -w
 use strict;
+# template toolkit
+use Template;
+# module for getting path info of a file
+use File::Basename;
 
 ## INPUT
 
@@ -7,7 +11,7 @@ use strict;
 if (scalar(@ARGV) == 0 || $ARGV[0] eq "-h") {
 	print "
 	USAGE:
-		perl kmer-histogram <INPUT_FILE> <OUTPUT_FILE_PREFIX> <K-MER_SIZE>
+		perl kviz <INPUT_FILE> <OUTPUT_FILE_PREFIX> <K-MER_SIZE>
 
 	ARGUMENTS:
 		<INPUT_FILE> => input fasta or fastq file containing read sequences
@@ -38,17 +42,18 @@ unless (-e $inputFile) {
 # create kmer abundance hash for input file
 my %kmerHash = createKmerCoverageHash(getSequencesFromFile($inputFile));
 
-# create output file containing kmer coverage
-my @hashKeys = keys(%kmerHash);
-print "Ready to create k-mer coverage file. Press any key to continue: ";
-<STDIN>;
-open(OUT, ">$outputFilePrefix.csv") or die "Unable to open file \"$outputFilePrefix.csv\"";
-print OUT "'K-mer','Coverage'\n";
-# print all kmers in hash table into output file
-for (my $i=0; $i < @hashKeys; $i++) {
-	print OUT "'".$hashKeys[$i]."',".$kmerHash{$hashKeys[$i]}."\n";
-}
-close(OUT);
+# prepare data to be sent to template
+my %templateData = ( col1 => 'kmer',
+			col2 => 'coverage',
+			kmers => \%kmerHash );
+my $templateFilePath = dirname(__FILE__);
+# initialize template object
+my $tt = Template->new({
+	INCLUDE_PATH => $templateFilePath.'/templates', #look here for template files
+	RELATIVE => 1 #INCLUDE_PATH is relative
+});
+# send data to template object and create output file
+$tt->process('histogram_template.tt2', \%templateData, $outputFilePrefix.'.html') || die $tt->error;
 
 
 ## SUBROUTINES
