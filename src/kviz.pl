@@ -84,13 +84,21 @@ sub getSequencesFromFile {
 
 		if ($fileFormat  eq "fq" || $fileFormat eq "fastq") {
 			# in case of a fastq file, sequences are separated by 4 lines
+			# begin by index $i = 1 because this is always the very first sequence, corresponding to line 1 in the input file
 			for(my $i = 1; $i < scalar(@fileContents); $i += 4) {
 				push(@sequences, $fileContents[$i]);
 			}
 		} elsif ($fileFormat eq "fa" || $fileFormat eq "fasta") {
-			# in case of a fasta file, sequences are separated by 2 lines
-			for(my $i = 1; $i < scalar(@fileContents); $i += 2) {
-				push(@sequences, $fileContents[$i]);
+			# in case of a fasta file, sequences are separated by id line beginning with >
+			# begin by index $i = 1 because this is always the very first sequence, corresponding to line 1 in the input file
+			for(my $i = 1; $i < scalar(@fileContents); $i ++) {
+				# if this is an id line, skip it
+				if (substr($fileContents[$i], 0, 1) eq ">") {
+					next;
+				# else this is a sequence and save it
+				} else {
+					push(@sequences, $fileContents[$i]);
+				}
 			}
 		} else {
 			print "The input file must be a fasta or fastq file\n";
