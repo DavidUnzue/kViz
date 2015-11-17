@@ -11,7 +11,7 @@ use File::Basename;
 if (scalar(@ARGV) == 0 || $ARGV[0] eq "-h") {
 	print "
 	USAGE:
-		perl kviz <INPUT_FILE> <OUTPUT_FILE_PREFIX> <K-MER_SIZE>
+		perl kviz.pl <INPUT_FILE> <OUTPUT_FILE_PREFIX> <K-MER_SIZE>
 
 	ARGUMENTS:
 		<INPUT_FILE> => input fasta or fastq file containing read sequences
