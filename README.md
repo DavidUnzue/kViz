@@ -1,4 +1,4 @@
-# kViz (k-mer coverage visualization)
+# kViz (k-mer coverage visualizer)
 kViz is a simple bioinformatics tool for visualizing the dristibution of the k-mer coverage within a given set of sequencing reads.
 
 ## Pre-Requisites
@@ -16,11 +16,11 @@ $ perl src/kviz.pl <INPUT_FILE> <OUTPUT_FILE_PREFIX> <K-MER_SIZE>
 ```
 
 ### Arguments
-<INPUT_FILE>
+\<INPUT_FILE\>
     input fasta or fastq file containing read sequences
-<OUTPUT_FILE_PREFIX>
+\<OUTPUT_FILE_PREFIX\>
     the path to the output file without file format ending, e.g.: "data/kmer_coverage_file"
-<K-MER_SIZE>
+\<K-MER_SIZE\>
     size of the created k-mers
 
 ## Output
