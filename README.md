@@ -16,12 +16,11 @@ $ perl src/kviz.pl <INPUT_FILE> <OUTPUT_FILE_PREFIX> <K-MER_SIZE>
 ```
 
 ### Arguments
-\<INPUT_FILE\>
-    input fasta or fastq file containing read sequences
-\<OUTPUT_FILE_PREFIX\>
-    the path to the output file without file format ending, e.g.: "data/kmer_coverage_file"
-\<K-MER_SIZE\>
-    size of the created k-mers
+\<INPUT_FILE\>: input fasta or fastq file containing read sequences
+
+\<OUTPUT_FILE_PREFIX\>: the path to the output file without file format ending, e.g.: "data/kmer_coverage_file"
+
+\<K-MER_SIZE\>: size of the created k-mers
 
 ## Output
 kViz generates a HTML file with a histogram showing the k-mer coverge distribution. The histogram is generated using [Google Charts Tools](https://developers.google.com/chart/).
