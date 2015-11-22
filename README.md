@@ -1,6 +1,8 @@
 # kViz (k-mer coverage visualizer)
 kViz is a simple bioinformatics tool for visualizing the dristibution of the k-mer coverage within a given set of sequencing reads.
 
+![kViz output histogram](screenshot.png?raw=true)
+
 ## Pre-Requisites
 Since kViz is written in Perl, you'll need Perl 5.6.0 or later installed in your machine.
 
