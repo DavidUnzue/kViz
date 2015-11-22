@@ -12,7 +12,7 @@ $ sudo cpan Template
 ```
 
 ## Usage
-Run in the command line the Perl script under the *src* folder with all three arguments.
+Within the kViz directory, execute in the command line the Perl script under the *src* folder with all three arguments.
 ```
 $ perl src/kviz.pl <INPUT_FILE> <OUTPUT_FILE_PREFIX> <K-MER_SIZE>
 ```
